@@ -1,5 +1,13 @@
-import { Directive, ElementRef, AfterViewInit, Input } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  AfterViewInit,
+  Input,
+  Inject,
+  PLATFORM_ID
+} from '@angular/core';
 import { LazyLoadingService } from './service/lazy-loading.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Directive({
   selector: '[lazy-load]'
@@ -11,12 +19,18 @@ export class LazyLoadDirective implements AfterViewInit {
   @Input('lazy-load') config: IntersectionObserverInit;
   constructor(
     private el: ElementRef,
-    private lazyLoadService: LazyLoadingService
+    private lazyLoadService: LazyLoadingService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   public ngAfterViewInit() {
     if (typeof window['IntersectionObserver'] === 'undefined') {
       console.log('stop using internet explorer you fiend');
+      this.supported = false;
+      return;
+    }
+    if (!isPlatformBrowser(this.platformId)) {
+      // server side rendering. Don't Do anything.
       this.supported = false;
       return;
     }
